@@ -2,7 +2,8 @@
 const hero=document.querySelector('.hero'),canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d');
 const motion=matchMedia('(prefers-reduced-motion: reduce)');let reduced=motion.matches;
 // Greens loop from deep teal through emerald and leaf to lime and back, so blends never jump.
-const palette=['#0f8f7a','#14a07c','#1aad6f','#2fb35c','#52b847','#7aba36','#9bbb2e','#7fb53a','#56ab4c','#2f9e5f','#178f6c','#0c8574'];const chars=['.',':','+','*','#','%','@'];
+const palette=['#0f8f7a','#14a07c','#1aad6f','#2fb35c','#52b847','#7aba36','#9bbb2e','#7fb53a','#56ab4c','#2f9e5f','#178f6c','#0c8574'];// A light, decorative ramp from Commit Mono's own symbols: dots and rings at the edges, asterisks in the core.
+const chars=['·','˚','°','+','*','*','*'];
 let w=0,h=0,cells=[],bursts=[],raf=0,last=0,until=0;
 const FONT='"Commit Mono",ui-monospace,monospace';
 const pointer={x:-999,y:-999,active:false,moved:0};let down=null;
@@ -30,12 +31,12 @@ function paint(c){
  const seed=hash(c.x*3.7+c.y*.91);
  const phase=(Math.sin(c.x*.017+c.y*.009)*2.1+Math.cos(c.y*.023-c.x*.007)*1.6+c.e*3.2+seed*.65+12)%12;
  const first=Math.floor(phase),mix=phase-first;
- const deep=1-Math.pow(1-c.rim,1.5)*.22,lift=Math.min(.84,Math.pow(c.rim,1.25)*.8+(1-Math.min(1,c.e*1.6))*.3);
+ const deep=1-Math.pow(1-c.rim,1.5)*.12,lift=Math.min(.86,.22+Math.pow(c.rim,1.25)*.6+(1-Math.min(1,c.e*1.6))*.25);
  return `rgb(${colors[first].map((v,i)=>{const hue=(v+(colors[(first+1)%12][i]-v)*mix)*deep;return Math.round(hue+(paper[i]-hue)*lift)}).join(',')})`;
 }
 function tilt(age,seed,strength){
  if(reduced||age<0||age>650)return 0;
- return Math.sin(age/85)*Math.exp(-age/190)*(seed>.5?1:-1)*.42*strength;
+ return Math.sin(age/85)*Math.exp(-age/190)*(seed>.5?1:-1)*.28*strength;
 }
 // A click claims existing cells. There is no second particle rendering pass.
 function clickAt(x,y,now){
@@ -70,7 +71,7 @@ function dab(x,y,r,ux,uy){
   const c=cells[row*cols+col];if(!c)continue;
   const dx=c.x-x,dy=c.y-y,edge=r*(.82+c.seed*.3),d=Math.hypot(dx,dy);if(d>edge)continue;
   const bristle=hash(Math.round((dx*-uy+dy*ux)/7)*12.9898+brush.id*78.233);
-  const v=(1-Math.pow(d/edge,2.2))*(.8+.2*bristle);
+  const v=(1-Math.pow(d/edge,2.2))*(.62+.18*bristle);
   if(v<=c.wet)continue;
   c.wet=v;c.rim=d/edge;
   // Paint parts around the stroke and drifts the way the brush travelled.
@@ -86,7 +87,7 @@ function stroke(dt,now){
  const sx=brush.x-px,sy=brush.y-py,seg=Math.hypot(sx,sy);
  // Thickness follows speed: a slow drag is a fine line, a fast sweep swells wide.
  brush.v+=(seg/Math.max(dt,1)-brush.v)*Math.min(1,dt/70);
- const min=w<600?10:13,max=w<600?44:64,k=Math.min(1,brush.v/2.4);
+ const min=w<600?9:11,max=w<600?32:46,k=Math.min(1,brush.v/2.4);
  const target=min+(max-min)*k*k*(3-2*k);
  const w0=brush.w;
  brush.w+=(target-brush.w)*Math.min(1,dt/90);
@@ -117,7 +118,7 @@ for(let i=0;i<cells.length;i++){
  // Rotate around each cell's anchor. Clicks retain their slots.
  const age=now-(c.entered??-10000);
  const angle=click?0:tilt(age,c.seed,Math.min(1,c.e*3));
- const force=reduced||click?0:Math.sin(c.e*Math.PI)*3.2;
+ const force=reduced||click?0:Math.sin(c.e*Math.PI)*1.8;
  const tx=c.ux*force,ty=c.uy*force;
  c.dx+=(tx-c.dx)*Math.min(1,dt/55);c.dy+=(ty-c.dy)*Math.min(1,dt/55);
  if(Math.abs(c.dx-tx)+Math.abs(c.dy-ty)>.02||(!reduced&&age<650&&c.e>.025))unsettled=true;
