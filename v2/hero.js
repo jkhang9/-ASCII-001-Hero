@@ -12,7 +12,7 @@ const pointer={x:-999,y:-999,active:false,moved:0};let down=null;
 const brush={x:0,y:0,down:false,w:0,v:0,len:0,id:0};let cols=0,rows=0,space=18;
 const hash=n=>{const a=Math.sin(n*127.1+311.7)*43758.5453;return a-Math.floor(a)};
 function wake(){until=performance.now()+1000;if(!raf)raf=requestAnimationFrame(frame)}
-function resize(){w=hero.clientWidth;h=hero.clientHeight;const d=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);ctx.setTransform(d,0,0,d,0,0);cells=[];space=w<600?16:18;cols=Math.ceil((w-space/2)/space);rows=Math.ceil((h-space/2)/space);for(let y=space/2;y<h;y+=space)for(let x=space/2;x<w;x+=space){const id=cells.length;cells.push({x,y,e:0,dx:0,dy:0,ux:1,uy:0,wet:0,seed:hash(id),decay:900+hash(id+17)*1100})}brush.down=false;eggs=layoutDiscoveries();for(const egg of eggs)placeDiscovery(egg);
+function resize(){w=hero.clientWidth;h=hero.clientHeight;const d=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);ctx.setTransform(d,0,0,d,0,0);cells=[];space=w<600?16:18;cols=Math.ceil((w-space/2)/space);rows=Math.ceil((h-space/2)/space);for(let y=space/2;y<h;y+=space)for(let x=space/2;x<w;x+=space){const id=cells.length;cells.push({x,y,e:0,dx:0,dy:0,ux:1,uy:0,wet:0,rim:1,seed:hash(id),decay:900+hash(id+17)*1100})}brush.down=false;eggs=layoutDiscoveries();for(const egg of eggs)placeDiscovery(egg);
 chosen=-1;wake()}
 
 function layoutDiscoveries(){
@@ -56,6 +56,16 @@ function ink(x,y,energy){
  const amount=Math.min(1,Math.pow(energy,.72)*(1.12+seed*.24)),base=[211,210,203];
  return `rgb(${rgb.map((v,i)=>Math.round(base[i]+(v-base[i])*amount)).join(',')})`;
 }
+// Brush paint is shaded by where the cell sits in the stroke: a slightly deeper core,
+// and an outer rim lifted towards the paper as a pale tint of the same color.
+const paper=[248,247,243];
+function paint(c){
+ const seed=hash(c.x*3.7+c.y*.91);
+ const phase=(Math.sin(c.x*.017+c.y*.009)*2.1+Math.cos(c.y*.023-c.x*.007)*1.6+c.e*3.2+seed*.65+12)%12;
+ const first=Math.floor(phase),mix=phase-first;
+ const deep=1-Math.pow(1-c.rim,1.5)*.22,lift=Math.min(.84,Math.pow(c.rim,1.25)*.8+(1-Math.min(1,c.e*1.6))*.3);
+ return `rgb(${colors[first].map((v,i)=>{const hue=(v+(colors[(first+1)%12][i]-v)*mix)*deep;return Math.round(hue+(paper[i]-hue)*lift)}).join(',')})`;
+}
 function tilt(age,seed,strength){
  if(reduced||age<0||age>650)return 0;
  return Math.sin(age/85)*Math.exp(-age/190)*(seed>.5?1:-1)*.42*strength;
@@ -95,7 +105,7 @@ function dab(x,y,r,ux,uy){
   const bristle=hash(Math.round((dx*-uy+dy*ux)/7)*12.9898+brush.id*78.233);
   const v=(1-Math.pow(d/edge,2.2))*(.8+.2*bristle);
   if(v<=c.wet)continue;
-  c.wet=v;
+  c.wet=v;c.rim=d/edge;
   // Paint parts around the stroke and drifts the way the brush travelled.
   const nx=d?dx/d:0,ny=d?dy/d:0,px=nx*.8+ux*.6,py=ny*.8+uy*.6,m=Math.hypot(px,py)||1;
   c.ux=px/m;c.uy=py/m;
@@ -136,7 +146,7 @@ for(let i=0;i<cells.length;i++){
   c.wet=Math.max(0,c.wet-dt/c.decay);unsettled=true;
  }
  let char=c.e>.025?chars[Math.min(6,Math.floor(c.e*8))]:null;
- let color=ink(c.x,c.y,c.e),alpha=1;
+ let color=c.e>.001?paint(c):ink(c.x,c.y,0),alpha=1;
  if(i===person&&c.e>.4)char=c.seed<.0011?'?':'*';
  const click=clickAt(c.x,c.y,now);
  if(click){
