@@ -2,49 +2,15 @@
 const hero=document.querySelector('.hero'),canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d');
 const motion=matchMedia('(prefers-reduced-motion: reduce)');let reduced=motion.matches;
 const palette=['#00a8c6','#168de2','#6262e5','#995de2','#cd58c7','#ed479a','#f16872','#ed8737','#c6aa16','#89b72e','#35b879','#19b3a3'];const chars=['.',':','+','*','#','%','@'];
-let w=0,h=0,cells=[],eggs=[],bursts=[],raf=0,last=0,until=0,chosen=-1,person=-1;
-const artPool=[["><(((\u00b0>"], [" /\\_/\\", "( o.o )", " > ^ <"], [" ( (", "  ) )", " c[_]"], ["(\\ /)", "( . .)", "c(\")(\")"], ["  .-.", " (o o)", " | O |", " /___\\"], ["  _", " (_)", "\\ | /", " \\|/", "  |"], [" .--.", "/ .. \\", "|____|", "  ||"], ["  /\\", " /  \\", " | o|", " /__\\", "  vv"], ["  /\\", " /__\\", "| [] |", "|_ _|"], [" /\\_/\\", "( -.- )", " (___)"], ["  _", " ( )", "--|--", " / \\"], ["  .", " /|\\", "/_|_\\", " ~~~"], ["oh hi"], ["psst..."], ["peek!"]];
-// A fresh layout seed per landing; artwork and placements stay fixed during the visit.
+let w=0,h=0,cells=[],bursts=[],raf=0,last=0,until=0;
 const FONT='"Commit Mono",ui-monospace,monospace';
-const landingSeed=Math.random()*1000000;
 const pointer={x:-999,y:-999,active:false,moved:0};let down=null;
 // The brush tip trails the pointer slightly, so quick flicks bend into curves instead of corners.
 const brush={x:0,y:0,down:false,w:0,v:0,len:0,id:0};let cols=0,rows=0,space=18;
 const hash=n=>{const a=Math.sin(n*127.1+311.7)*43758.5453;return a-Math.floor(a)};
 function wake(){until=performance.now()+1000;if(!raf)raf=requestAnimationFrame(frame)}
-function resize(){w=hero.clientWidth;h=hero.clientHeight;const d=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);ctx.setTransform(d,0,0,d,0,0);cells=[];space=w<600?16:18;cols=Math.ceil((w-space/2)/space);rows=Math.ceil((h-space/2)/space);for(let y=space/2;y<h;y+=space)for(let x=space/2;x<w;x+=space){const id=cells.length;cells.push({x,y,e:0,dx:0,dy:0,ux:1,uy:0,wet:0,rim:1,seed:hash(id),decay:900+hash(id+17)*1100})}brush.down=false;eggs=layoutDiscoveries();for(const egg of eggs)placeDiscovery(egg);
-chosen=-1;wake()}
+function resize(){w=hero.clientWidth;h=hero.clientHeight;const d=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(w*d);canvas.height=Math.round(h*d);ctx.setTransform(d,0,0,d,0,0);cells=[];space=w<600?16:18;cols=Math.ceil((w-space/2)/space);rows=Math.ceil((h-space/2)/space);for(let y=space/2;y<h;y+=space)for(let x=space/2;x<w;x+=space){const id=cells.length;cells.push({x,y,e:0,dx:0,dy:0,ux:1,uy:0,wet:0,rim:1,seed:hash(id),decay:900+hash(id+17)*1100})}brush.down=false;wake()}
 
-function layoutDiscoveries(){
- const space=w<600?16:18,placed=[];
- const ordered=artPool.map((lines,art)=>({art,cols:Math.max(...lines.map(l=>[...l].length)),rows:lines.length})).sort((a,b)=>b.cols*b.rows-a.cols*a.rows);
- for(const item of ordered){
-  const columns=Math.floor(w/space),rows=Math.floor((h-space)/space);
-  let found=null;
-  for(let attempt=0;attempt<900;attempt++){
-   const col=Math.floor(hash(landingSeed+item.art*107+attempt*13)*Math.max(1,columns-item.cols));
-   const row=1+Math.floor(hash(landingSeed+item.art*239+attempt*31)*Math.max(1,rows-item.rows-1));
-   const left=col*space,top=row*space,right=left+item.cols*space,bottom=top+item.rows*space;
-   if(right>w||bottom>h-space)continue;
-   const gap=attempt<600?space:space*.4;
-   if(placed.some(e=>right+gap>e.left&&left-gap<e.right&&bottom+gap>e.top&&top-gap<e.bottom))continue;
-   found={...item,left,top,right,bottom,x:(left+right)/2,y:(top+bottom)/2,alpha:0,index:placed.length};break;
-  }
-  if(found)placed.push(found);
- }
- return placed;
-}
-function placeDiscovery(egg){
- const space=w<600?16:18;
- for(const c of cells)if(c.egg===egg.index){delete c.egg;delete c.discovery}
- const lines=artPool[egg.art],cols=Math.max(...lines.map(line=>[...line].length));
- const startX=egg.left+space/2,startY=egg.top+space/2;
- const byPosition=new Map(cells.map(c=>[`${c.x},${c.y}`,c]));
- lines.forEach((line,row)=>[...line].forEach((character,col)=>{
-  const c=byPosition.get(`${startX+col*space},${startY+row*space}`);
-  if(c){c.egg=egg.index;c.discovery=character}
- }));
-}
 const colors=palette.map(hex=>hex.slice(1).match(/../g).map(v=>parseInt(v,16)));
 // Irregular color pools blend with proximity, rather than fixed stripes.
 function ink(x,y,energy){
@@ -132,12 +98,6 @@ function stroke(dt,now){
 }
 function frame(now){raf=0;const dt=Math.min(now-(last||now-16),40);last=now;ctx.clearRect(0,0,w,h);ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='11px "Commit Mono",ui-monospace,monospace';let unsettled=stroke(dt,now);
 bursts=bursts.filter(b=>now-b.t<900);
-let hit=pointer.active&&!clickAt(pointer.x,pointer.y,now)?eggs.findIndex(e=>Math.hypot(pointer.x-e.x,pointer.y-e.y)<32):-1;
-if(chosen<0&&hit>=0)chosen=hit;
-for(const e of eggs){e.poked=bursts.some(b=>Math.hypot(e.x-b.x,e.y-b.y)<75);if(e.poked)e.alpha=0}
-for(let i=0;i<eggs.length;i++){let e=eggs[i];const target=chosen===i&&hit===i&&!e.poked?1:0;e.alpha+=(target-e.alpha)*Math.min(1,dt/(reduced?65:150));if(target===0&&e.alpha<.006){e.alpha=0;if(chosen===i)chosen=-1}if(Math.abs(e.alpha-target)>.006)unsettled=true}
-bursts=bursts.filter(b=>now-b.t<900);
-if(pointer.active){let best=-1,dist=27;for(let i=0;i<cells.length;i++){const c=cells[i];if(c.seed>.0017)continue;let d=Math.hypot(c.x-pointer.x,c.y-pointer.y);if(d<dist){dist=d;best=i}}person=chosen<0?best:-1}else person=-1;
 for(let i=0;i<cells.length;i++){
  const c=cells[i];
  // Wet paint flows in quickly, then dries unevenly so the tail feathers out.
@@ -147,34 +107,21 @@ for(let i=0;i<cells.length;i++){
  }
  let char=c.e>.025?chars[Math.min(6,Math.floor(c.e*8))]:null;
  let color=c.e>.001?paint(c):ink(c.x,c.y,0),alpha=1;
- if(i===person&&c.e>.4)char=c.seed<.0011?'?':'*';
  const click=clickAt(c.x,c.y,now);
  if(click){
   char=clickGlyph(click,c.x,c.y,now,c.x===click.x&&c.y===click.y);
   color=ink(c.x,c.y,Math.min(.85,(900-(now-click.t))/380)*(1-Math.hypot(c.x-click.x,c.y-click.y)/78));
- }else{
-  const egg=c.egg===undefined?null:eggs[c.egg];
-  if(egg&&egg.alpha>.006){
-   if(c.discovery===' '){char=null;color=ink(c.x,c.y,0)}
-   else{
-    // A glyph decodes and dissolves within its own dot's position.
-    const resolved=egg.alpha>.72+c.seed*.14;
-    char=resolved?c.discovery:['.',':','+','*'][Math.min(3,Math.floor(egg.alpha*4))];
-    color=ink(c.x,c.y,egg.alpha);
-   }
-  }
  }
  ctx.globalAlpha=alpha;ctx.fillStyle=color;
- // Rotate around each cell's anchor. Clicks and discoveries retain their slots.
- const discovery=c.egg!==undefined&&eggs[c.egg].alpha>.006;
+ // Rotate around each cell's anchor. Clicks retain their slots.
  const age=now-(c.entered??-10000);
- const angle=click||discovery?0:tilt(age,c.seed,Math.min(1,c.e*3));
- const force=reduced||click||discovery?0:Math.sin(c.e*Math.PI)*3.2;
+ const angle=click?0:tilt(age,c.seed,Math.min(1,c.e*3));
+ const force=reduced||click?0:Math.sin(c.e*Math.PI)*3.2;
  const tx=c.ux*force,ty=c.uy*force;
  c.dx+=(tx-c.dx)*Math.min(1,dt/55);c.dy+=(ty-c.dy)*Math.min(1,dt/55);
  if(Math.abs(c.dx-tx)+Math.abs(c.dy-ty)>.02||(!reduced&&age<650&&c.e>.025))unsettled=true;
  if(char){
-  ctx.save();ctx.translate(c.x+(click||discovery?0:c.dx),c.y+(click||discovery?0:c.dy));ctx.rotate(angle);
+  ctx.save();ctx.translate(c.x+(click?0:c.dx),c.y+(click?0:c.dy));ctx.rotate(angle);
   if(click){
    const center=c.x===click.x&&c.y===click.y,age=now-click.t,distance=Math.hypot(c.x-click.x,c.y-click.y);
    const baseSize=center?13:11;
