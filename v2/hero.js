@@ -136,7 +136,7 @@ function stroke(dt,now){
  const sx=brush.x-px,sy=brush.y-py,seg=Math.hypot(sx,sy);
  // Thickness follows speed: a slow drag is a fine line, a fast sweep swells wide.
  brush.v+=(seg/Math.max(dt,1)-brush.v)*Math.min(1,dt/70);
- const min=w<600?10:13,max=(w<600?44:64)*(down?1.2:1),k=Math.min(1,brush.v/2.4);
+ const min=w<600?10:13,max=w<600?44:64,k=Math.min(1,brush.v/2.4);
  const target=min+(max-min)*k*k*(3-2*k);
  const w0=brush.w;
  brush.w+=(target-brush.w)*Math.min(1,dt/90);
@@ -194,10 +194,10 @@ for(let i=0;i<cells.length;i++){
   ctx.save();ctx.translate(c.x+(click||discovery?0:c.dx),c.y+(click||discovery?0:c.dy));ctx.rotate(angle);
   if(click){
    const center=c.x===click.x&&c.y===click.y,age=now-click.t,distance=Math.hypot(c.x-click.x,c.y-click.y);
-   const baseSize=center?18:distance<22?12:distance<37?10:9;
+   const baseSize=center?13:11;
    const settling=Math.max(0,Math.min(1,(age-520)/380));
-   ctx.font=`400 ${baseSize-(baseSize-9)*settling}px "Commit Mono",ui-monospace,monospace`;
-   if(!reduced&&center){const scale=age<75?.9:1+Math.sin(Math.min(1,(age-75)/180)*Math.PI)*.08;ctx.scale(scale,scale)}
+   ctx.font=`400 ${baseSize-(baseSize-11)*settling}px ${FONT}`;
+   if(!reduced&&center){const scale=age<75?.9:1+Math.sin(Math.min(1,(age-75)/180)*Math.PI)*.05;ctx.scale(scale,scale)}
   }
   ctx.fillText(char,0,0);ctx.restore();
  }else{ctx.beginPath();ctx.arc(c.x+c.dx,c.y+c.dy,.72,0,Math.PI*2);ctx.fill()}
@@ -210,8 +210,8 @@ for(const l of letters){
  l.e=target>l.e?target:Math.max(target,l.e-dt/450);if(l.e>target+.003)unsettled=true;
  const click=clickAt(l.cx,l.cy,now),scramble=!click&&!reduced&&l.e>.28&&now-l.entered<360;
  ctx.save();ctx.translate(l.cx,l.cy);ctx.rotate(click?0:tilt(now-l.entered,hash(l.cx),Math.min(1,l.e*2))*.6);ctx.translate(-l.cx,-l.cy);
- ctx.fillStyle=`rgb(${Math.round(155-l.e*90)},${Math.round(156-l.e*90)},${Math.round(150-l.e*86)})`;
- if(click){ctx.fillStyle=ink(l.cx,l.cy,.8);ctx.font=`400 ${l.size*.64}px ${FONT}`;ctx.fillText(clickGlyph(click,l.cx,l.cy,now,Math.hypot(click.x-l.cx,click.y-l.cy)<1),l.cx,l.cy)}
+ ctx.fillStyle=`rgb(${Math.round(146-l.e*81)},${Math.round(146-l.e*80)},${Math.round(141-l.e*77)})`;
+ if(click){ctx.fillStyle=ink(l.cx,l.cy,.8);ctx.font=`400 ${Math.min(13,l.size*.5)}px ${FONT}`;ctx.fillText(clickGlyph(click,l.cx,l.cy,now,Math.hypot(click.x-l.cx,click.y-l.cy)<1),l.cx,l.cy)}
  // The scramble is drawn at the heading's own size and position, over the letter it replaces.
  else if(scramble){ctx.fillStyle=ink(l.cx,l.cy,1);ctx.font=`400 ${l.size}px ${FONT}`;const v=variants[l.ch]||[l.ch];ctx.fillText(v[Math.floor((now-l.entered)/65)%v.length],l.cx,l.cy);unsettled=true}
  else for(const [x,y] of l.dots){ctx.beginPath();ctx.arc(x,y,l.pitch*.3,0,Math.PI*2);ctx.fill()}

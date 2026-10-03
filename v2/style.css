@@ -134,7 +134,7 @@ h1 {
   line-height: 20px;
   letter-spacing: 1.2px;
 
-  color: #b1b0a9;
+  color: #92928d;
   pointer-events: none;
 }
 
@@ -156,7 +156,7 @@ h1 {
   font-size: 10px;
   letter-spacing: 2px;
 
-  color: #a7a69f;
+  color: #92928d;
   text-align: center;
   pointer-events: none;
 }
@@ -166,8 +166,7 @@ h1 {
   margin-bottom: 12px;
 
   font-size: 20px;
-  font-family: monospace;
-  font-weight: 300;
+  font-weight: 400;
 }
 
 
