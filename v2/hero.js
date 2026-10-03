@@ -5,7 +5,7 @@ const motion=matchMedia('(prefers-reduced-motion: reduce)');let reduced=motion.m
 const palette=['#0f8f7a','#14a07c','#1aad6f','#2fb35c','#52b847','#7aba36','#9bbb2e','#7fb53a','#56ab4c','#2f9e5f','#178f6c','#0c8574'];// A light, decorative ramp from Commit Mono's own symbols: dots and rings at the edges, asterisks in the core.
 const chars=['·','˚','°','+','*','*','*'];
 let w=0,h=0,cells=[],bursts=[],raf=0,last=0,until=0;
-const FONT='"Commit Mono",ui-monospace,monospace';
+const FONT='"Commit Mono",ui-monospace,monospace',SIZE=13;
 const pointer={x:-999,y:-999,active:false,moved:0};let down=null;
 // The brush tip trails the pointer slightly, so quick flicks bend into curves instead of corners.
 const brush={x:0,y:0,down:false,w:0,v:0,len:0,id:0};let cols=0,rows=0,space=18;
@@ -98,7 +98,7 @@ function stroke(dt,now){
  brush.len+=seg;
  return true;
 }
-function frame(now){raf=0;const dt=Math.min(now-(last||now-16),40);last=now;ctx.clearRect(0,0,w,h);ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='11px "Commit Mono",ui-monospace,monospace';let unsettled=stroke(dt,now);
+function frame(now){raf=0;const dt=Math.min(now-(last||now-16),40);last=now;ctx.clearRect(0,0,w,h);ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${SIZE}px ${FONT}`;let unsettled=stroke(dt,now);
 bursts=bursts.filter(b=>now-b.t<900);
 for(let i=0;i<cells.length;i++){
  const c=cells[i];
@@ -126,9 +126,9 @@ for(let i=0;i<cells.length;i++){
   ctx.save();ctx.translate(c.x+(click?0:c.dx),c.y+(click?0:c.dy));ctx.rotate(angle);
   if(click){
    const center=c.x===click.x&&c.y===click.y,age=now-click.t,distance=Math.hypot(c.x-click.x,c.y-click.y);
-   const baseSize=center?13:11;
+   const baseSize=center?SIZE+2:SIZE;
    const settling=Math.max(0,Math.min(1,(age-520)/380));
-   ctx.font=`400 ${baseSize-(baseSize-11)*settling}px ${FONT}`;
+   ctx.font=`400 ${baseSize-(baseSize-SIZE)*settling}px ${FONT}`;
    if(!reduced&&center){const scale=age<75?.9:1+Math.sin(Math.min(1,(age-75)/180)*Math.PI)*.05;ctx.scale(scale,scale)}
   }
   ctx.fillText(char,0,0);ctx.restore();
@@ -142,5 +142,5 @@ hero.addEventListener('pointermove',move);hero.addEventListener('pointerdown',e=
 hero.addEventListener('pointerup',e=>{if(down&&!down.drag){poke(e.clientX,e.clientY)}down=null;if(e.pointerType!=='mouse'){pointer.active=false;wake()}});
 function leave(){pointer.active=false;down=null;wake()}hero.addEventListener('pointerleave',e=>{if(!down)leave()});hero.addEventListener('pointercancel',leave);window.addEventListener('blur',leave);
 hero.addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='Enter'){e.preventDefault();poke(w/2,h*.6)}});
-motion.addEventListener('change',e=>{reduced=e.matches;wake()});window.addEventListener('resize',resize);document.fonts.load(`400 11px ${FONT}`).then(wake,()=>{});document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;last=0;pointer.active=false}else wake()});resize();
+motion.addEventListener('change',e=>{reduced=e.matches;wake()});window.addEventListener('resize',resize);document.fonts.load(`400 ${SIZE}px ${FONT}`).then(wake,()=>{});document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;last=0;pointer.active=false}else wake()});resize();
 })();
