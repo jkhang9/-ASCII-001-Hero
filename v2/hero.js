@@ -1,7 +1,8 @@
 (()=>{'use strict';
 const hero=document.querySelector('.hero'),canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d');
 const motion=matchMedia('(prefers-reduced-motion: reduce)');let reduced=motion.matches;
-const palette=['#00a8c6','#168de2','#6262e5','#995de2','#cd58c7','#ed479a','#f16872','#ed8737','#c6aa16','#89b72e','#35b879','#19b3a3'];const chars=['.',':','+','*','#','%','@'];
+// Greens loop from deep teal through emerald and leaf to lime and back, so blends never jump.
+const palette=['#0f8f7a','#14a07c','#1aad6f','#2fb35c','#52b847','#7aba36','#9bbb2e','#7fb53a','#56ab4c','#2f9e5f','#178f6c','#0c8574'];const chars=['.',':','+','*','#','%','@'];
 let w=0,h=0,cells=[],bursts=[],raf=0,last=0,until=0;
 const FONT='"Commit Mono",ui-monospace,monospace';
 const pointer={x:-999,y:-999,active:false,moved:0};let down=null;
