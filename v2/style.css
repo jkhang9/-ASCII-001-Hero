@@ -1,0 +1,241 @@
+@font-face {
+  font-family: 'Commit Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/commit-mono-latin-400-normal.woff2) format('woff2');
+}
+
+@font-face {
+  font-family: 'Commit Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/commit-mono-latin-700-normal.woff2) format('woff2');
+}
+
+:root {
+  color-scheme: light;
+  background: #f8f7f3;
+  font-family: 'Commit Mono', ui-monospace, monospace;
+  color: #92928d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.hero {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  min-height: 440px;
+  overflow: hidden;
+  touch-action: none;
+  outline: none;
+}
+
+.hero:focus-visible {
+  outline: 1px dotted #92928d;
+  outline-offset: -8px;
+}
+
+canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+
+/* ─────────────────────────────
+   IDENTITY
+   4px GRID
+   ───────────────────────────── */
+
+.identity {
+  --identity-gap: 24px;
+
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  align-items: center;
+  gap: var(--identity-gap);
+
+  /* equal outer padding */
+  padding: 24px;
+
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+h1 {
+  width: fit-content;
+  flex: 0 0 auto;
+
+  padding: 0;
+  margin: 0;
+
+  color: transparent;
+
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 32px;
+
+  white-space: nowrap;
+}
+
+
+/* Divider */
+.divider {
+  flex: 0 0 1px;
+
+  width: 1px;
+  height: 48px;
+
+  background: #d5d4ce;
+}
+
+
+/* Metadata */
+.metadata {
+  flex: 0 0 auto;
+
+  font-size: 12px;
+  line-height: 24px;
+  letter-spacing: 1.2px;
+}
+
+.metadata p {
+  margin: 0;
+}
+
+
+/* ─────────────────────────────
+   INSTRUCTION
+   ───────────────────────────── */
+
+.instruction {
+  position: absolute;
+  left: 40px;
+  bottom: 36px;
+
+  margin: 0;
+
+  font-size: 10px;
+  line-height: 20px;
+  letter-spacing: 1.2px;
+
+  color: #b1b0a9;
+  pointer-events: none;
+}
+
+.touch {
+  display: none;
+}
+
+
+/* ─────────────────────────────
+   SCROLL
+   ───────────────────────────── */
+
+.scroll {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  font-size: 10px;
+  letter-spacing: 2px;
+
+  color: #a7a69f;
+  text-align: center;
+  pointer-events: none;
+}
+
+.scroll span {
+  display: block;
+  margin-bottom: 12px;
+
+  font-size: 20px;
+  font-family: monospace;
+  font-weight: 300;
+}
+
+
+/* ─────────────────────────────
+   MOBILE
+   ───────────────────────────── */
+
+@media (max-width: 600px) {
+  .identity {
+    --identity-gap: 16px;
+  }
+
+  h1 {
+    font-size: 20px;
+    line-height: 24px;
+  }
+
+  .divider {
+    height: 40px;
+  }
+
+  .metadata {
+    font-size: 8px;
+    line-height: 16px;
+    letter-spacing: 0.8px;
+  }
+
+  .instruction {
+    left: 24px;
+    bottom: 28px;
+
+    font-size: 8px;
+    line-height: 16px;
+    letter-spacing: 0.8px;
+  }
+
+  .scroll {
+    bottom: 28px;
+    font-size: 8px;
+  }
+}
+
+
+/* Touch */
+@media (pointer: coarse) {
+  .desktop {
+    display: none;
+  }
+
+  .touch {
+    display: inline;
+  }
+}
+
+
+/* Small mobile */
+@media (max-width: 350px) {
+  .identity {
+    --identity-gap: 12px;
+  }
+
+  h1 {
+    font-size: 16px;
+    line-height: 20px;
+  }
+
+  .metadata {
+    font-size: 8px;
+    line-height: 16px;
+  }
+}
